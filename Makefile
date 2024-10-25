@@ -1,7 +1,7 @@
-# Compiler settings
+# Compiler and flags
 CC = gcc
-CFLAGS = -Wall -Wextra -O2
-LDFLAGS = -pthread
+CFLAGS = -O3 -march=native -mtune=native -ffast-math -Wall -Wextra
+LDFLAGS = -pthread -lm
 
 # Target executable name
 TARGET = matrix_mult
@@ -31,4 +31,12 @@ clean:
 debug: CFLAGS += -g -DDEBUG
 debug: clean all
 
-.PHONY: all clean debug
+# Help target
+help:
+	@echo "Available targets:"
+	@echo "  all     : Build the matrix multiplication program (default)"
+	@echo "  clean   : Remove built files"
+	@echo "  debug   : Build with debugging symbols"
+	@echo "  help    : Show this help message"
+
+.PHONY: all clean debug help
