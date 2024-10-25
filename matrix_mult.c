@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 
-#define BLOCK_SIZE 128
+#define BLOCK_SIZE 64
 #define CACHE_LINE 64
 #define MIN_SIZE_FOR_PARALLEL 500
 
@@ -137,13 +137,13 @@ int main(int argc, char* argv[]) {
     int N = atoi(argv[1]);
     int num_threads = atoi(argv[2]);
     
-    if (N < MIN_SIZE_FOR_PARALLEL) {
-        printf("Matrix size %d is too small for parallel execution. Using serial version.\n", N);
+    // Only ensure valid range, don't override user choice
+    if (num_threads < 1) {
         num_threads = 1;
-    } else {
-        int max_threads = (N + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        num_threads = num_threads > max_threads ? max_threads : num_threads;
-        num_threads = num_threads > 4 ? 4 : num_threads;
+        printf("Adjusted thread count to minimum value: 1\n");
+    } else if (num_threads > N) {
+        num_threads = N;
+        printf("Adjusted thread count to maximum value: %d\n", N);
     }
     
     printf("Matrix size: %dx%d\n", N, N);
