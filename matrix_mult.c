@@ -143,6 +143,8 @@ int main(int argc, char *argv[]) {
     print_matrix(C, N);
     printf("Result Matrix A (Parallel):\n");
     print_matrix(A, N);
+    printf("Result Matrix A (Serial):\n");
+    print_matrix(A_serial, N);
 
     // Verify results
     if(compare_matrices(A, A_serial, N)) {
