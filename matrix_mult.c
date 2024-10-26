@@ -4,6 +4,7 @@
 #include <time.h>
 #include <string.h>
 #include <math.h>
+#include <unistd.h>  // Added for gettid()
 
 // Structure to pass data to threads
 typedef struct {
@@ -13,10 +14,12 @@ typedef struct {
     float *A;
     float *B;
     float *C;
+    int thread_id;  // Added thread ID
 } ThreadData;
 
 // Global mutex for task distribution
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t print_mutex = PTHREAD_MUTEX_INITIALIZER;  // Added for synchronized printing
 int current_task = 0;
 int total_tasks;
 
@@ -65,6 +68,11 @@ void *thread_multiply(void *arg) {
             sum += data->B[row * data->N + k] * data->C[k * data->N + col];
         }
         data->A[row * data->N + col] = sum;
+        
+        // Print which thread is processing which cell
+        pthread_mutex_lock(&print_mutex);
+        printf("Thread %d processing cell [%d,%d]\n", data->thread_id, row, col);
+        pthread_mutex_unlock(&print_mutex);
     }
     
     return NULL;
@@ -114,21 +122,24 @@ int main(int argc, char *argv[]) {
         C[i] = (float)rand() / RAND_MAX;
     }
 
-    // Create thread data structure
-    ThreadData thread_data = {0, 0, N, A, B, C};
-
-    // Create threads
+    // Create threads array and thread_data array
     pthread_t *threads = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
+    ThreadData *thread_data = (ThreadData *)malloc(num_threads * sizeof(ThreadData));
+
+    printf("Starting parallel multiplication with %d threads...\n\n", num_threads);
     
     // Create and execute threads
     for(int i = 0; i < num_threads; i++) {
-        pthread_create(&threads[i], NULL, thread_multiply, &thread_data);
+        thread_data[i] = (ThreadData){0, 0, N, A, B, C, i};
+        pthread_create(&threads[i], NULL, thread_multiply, &thread_data[i]);
     }
 
     // Wait for all threads to complete
     for(int i = 0; i < num_threads; i++) {
         pthread_join(threads[i], NULL);
     }
+
+    printf("\nParallel multiplication complete.\n\n");
 
     // Perform serial multiplication for verification
     multiply_matrices_serial(A_serial, B, C, N);
@@ -159,7 +170,9 @@ int main(int argc, char *argv[]) {
     free(C);
     free(A_serial);
     free(threads);
+    free(thread_data);
     pthread_mutex_destroy(&mutex);
+    pthread_mutex_destroy(&print_mutex);
 
     return 0;
 }
