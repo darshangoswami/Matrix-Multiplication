@@ -1,4 +1,4 @@
-# Parallel Matrix Multiplication Implementation
+# Matrix Multiplication
 
 This program implements matrix multiplication using both serial and parallel approaches with POSIX threads (Pthreads). The parallel implementation uses dynamic task distribution where each thread calculates individual cells of the resultant matrix.
 
